@@ -13,11 +13,11 @@ public class Level {
 
 	private String[][][] geo;
 	private String[][][] tiles;
-	private String[] props;
+	private String[] props = new String[0];
 
 	private String originalGeo;
 	private String originalTiles;
-	private String originalProps;
+	private String originalProps = "[]";
 
 	public static Level parse(File file) {
 		Level lvl = new Level();
@@ -27,15 +27,13 @@ public class Level {
 			lvl.originalGeo = lvl.readLevel.substring(lvl.readLevel.indexOf("[[[["), lvl.readLevel.indexOf("]]]]]") + 5);
 			lvl.geo = Level.parseLevelArr(lvl.originalGeo);
 
-			lvl.originalTiles = lvl.readLevel
-				.substring(lvl.readLevel.indexOf("#tlMatrix: [[[[#tp: ") + 11,
-					lvl.readLevel.indexOf("]]]]", lvl.readLevel.indexOf("#tlMatrix: [[[[#tp: ") + 11) + 4);
+			lvl.originalTiles = lvl.readLevel.substring(lvl.readLevel.indexOf("#tlMatrix: [[[[#tp: ") + 11, lvl.readLevel.indexOf("]]]], #", lvl.readLevel.indexOf("#tlMatrix: [[[[#tp: ") + 11) + 4);
 			lvl.tiles = Level.parseLevelArr(lvl.originalTiles);
 
-			lvl.originalProps = lvl.readLevel
-				.substring(lvl.readLevel.indexOf("[#props: [[") + 9,
-					lvl.readLevel.indexOf("]]]]", lvl.readLevel.indexOf("[#props: [[")) + 4);
-			lvl.props = parseProps(lvl.originalProps);
+			if (!lvl.readLevel.contains("[#props: [], #lastKeys: [")) {
+				lvl.originalProps = lvl.readLevel.substring(lvl.readLevel.indexOf("[#props: [[") + 9, lvl.readLevel.indexOf("]]]], #", lvl.readLevel.indexOf("[#props: [[")) + 4);
+				lvl.props = parseProps(lvl.originalProps);
+			}
 
 		} catch (IOException e) {
 			System.err.println("Error reading the file: " + e.getMessage());
@@ -402,7 +400,7 @@ public class Level {
 			for (int i = 0; i < arr.length; i++) {
 
 				if (i > 0) {
-					sb.append(",");
+					sb.append(", ");
 				}
 
 				sb.append(arrToString(arr[i]));
@@ -417,10 +415,7 @@ public class Level {
 	}
 
 	public String save() {
-		return this.readLevel
-			.replace(originalGeo, arrToString(geo))
-			.replace(originalTiles, arrToString(tiles))
-			.replace(originalProps, arrToString(props));
+		return this.readLevel.replace(originalGeo, arrToString(geo)).replace(originalTiles, arrToString(tiles)).replace(originalProps, arrToString(props));
 	}
 
 }
